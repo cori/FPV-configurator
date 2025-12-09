@@ -103,30 +103,12 @@ The tool implements the physics model from the "2025 Comprehensive Analysis" doc
 ## 📦 What's in This Repo
 
 ```
-FPV-parts-search/
+FPV-configurator/
 ├── FPV-configurator.jsx          # Main React component
-├── FPV Drone Component Analysis Tool.pdf   # Original technical document
-├── CORRECTIONS-AND-IMPROVEMENTS.md         # Detailed critique and fixes
 └── README.md                               # This file
 ```
 
-### Files Explained
 
-**`FPV-configurator.jsx`**
-- Interactive React component with sliders, toggles, and real-time calculations
-- Self-contained (no external dependencies beyond React and lucide-react)
-- Can be dropped into any React project
-
-**`FPV Drone Component Analysis Tool.pdf`**
-- Original technical document explaining FPV motor physics
-- Stator volume calculations, Kt/Kv relationships, disk loading theory
-- Note: Recommendations were skewed toward racing specs (see CORRECTIONS doc)
-
-**`CORRECTIONS-AND-IMPROVEMENTS.md`**
-- 484-line analysis of original document issues
-- Before/after comparison tables
-- Technical rationale for all corrections
-- Assessment improvement documentation (6/10 → 8.5/10 utility)
 
 ---
 
@@ -309,8 +291,6 @@ Prop guards add 20% drag (thrust penalty) but enable indoor flying. The tool sho
 
 - **Chris Rosser Thrust Testing**: Comprehensive motor/prop thrust data
 - **Joshua Bardwell Database**: Community-sourced motor specifications
-- **Original PDF Document**: Deep dive into FPV motor physics (in this repo)
-- **CORRECTIONS-AND-IMPROVEMENTS.md**: Understanding the tool's accuracy (in this repo)
 
 ### Related Topics
 
