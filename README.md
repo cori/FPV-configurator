@@ -30,6 +30,11 @@ The FPV Propulsion Architect simulates flight characteristics based on motor spe
 
 ## 📋 Quick Start
 
+### Running the Tool
+
+1. **Clone this repository**
+2. **Open `index.html` in your browser** - That's it! No installation needed.
+
 ### Using the Configurator
 
 1. **Load a Preset** - Start with a preset that matches your target class (65mm whoop, 5-inch freestyle, etc.)
@@ -104,17 +109,34 @@ The tool implements the physics model from the "2025 Comprehensive Analysis" doc
 
 ```
 FPV-configurator/
+├── index.html                    # 🚀 Standalone HTML (just open in browser!)
 ├── FPV-configurator.jsx          # Main React component
-└── README.md                               # This file
+└── README.md                     # This file
 ```
-
-
 
 ---
 
 ## 🛠️ Running the Tool
 
-### As a React Component
+### 🚀 Quick Start (Recommended)
+
+**Just open `index.html` in your browser!**
+
+```bash
+# Clone the repository
+git clone https://github.com/cori/FPV-configurator.git
+cd FPV-configurator
+
+# Open index.html in your browser
+# - Double-click the file, or
+# - Right-click → Open with → Your Browser
+```
+
+No installation, no build process, no dependencies to install. Just clone and open!
+
+### As a React Component (For Developers)
+
+If you want to integrate this into your own React project:
 
 ```bash
 # Install dependencies
@@ -127,39 +149,11 @@ import FPVAnalysisTool from './FPV-configurator.jsx';
 <FPVAnalysisTool />
 ```
 
-### Standalone HTML (Quick Demo)
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="text/babel" src="./FPV-configurator.jsx"></script>
-  <script type="text/babel">
-    ReactDOM.render(<FPVAnalysisTool />, document.getElementById('root'));
-  </script>
-</body>
-</html>
-```
-
-### Tailwind CSS Required
-
-The component uses Tailwind CSS classes. Include in your project:
+**Note:** The component uses Tailwind CSS classes. Include Tailwind in your project:
 
 ```bash
 npm install -D tailwindcss
 npx tailwindcss init
-```
-
-Or use CDN for quick testing:
-```html
-<script src="https://cdn.tailwindcss.com"></script>
 ```
 
 ---
