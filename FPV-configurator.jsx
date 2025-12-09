@@ -4,29 +4,69 @@ import { Settings, Battery, Zap, Wind, Weight, RotateCw, BarChart3, Info, CheckC
 // --- CONSTANTS & REFERENCE DATA (From PDF Section 8) ---
 
 const PRESETS = {
-  "65mm Whoop (Racing)": {
-    statorW: 7, statorH: 2, kv: 30000,
+  // --- 65mm WHOOPS (Practical Tiers) ---
+  "65mm Analog (Budget)": {
+    statorW: 8, statorH: 2, kv: 19500,
     propSize: 1.22, // 31mm
     propPitch: 1.0, blades: 2,
     voltage: 4.35, // 1S HV
-    droneWeight: 18, battWeight: 8, // Total ~26g
-    desc: "Indoor racing standard. Ultra-low inertia, high snap."
+    droneWeight: 22, battWeight: 9, // Total ~31g
+    ducted: true, videoSystem: "Analog",
+    desc: "Standard 0802 @ 19.5KV. Reliable, cool-running, easy to tune.",
+    tier: "Budget/Beginner"
   },
-  "75mm Whoop (Freestyle)": {
-    statorW: 10, statorH: 2, kv: 22000,
+  "65mm Analog (Intermediate)": {
+    statorW: 8, statorH: 2, kv: 25000,
+    propSize: 1.22,
+    propPitch: 1.0, blades: 2,
+    voltage: 4.35,
+    droneWeight: 21, battWeight: 8, // Total ~29g
+    ducted: true, videoSystem: "Analog",
+    desc: "0802 @ 25KV. More punch, still manageable heat.",
+    tier: "Intermediate"
+  },
+  "65mm Racing (Advanced)": {
+    statorW: 7, statorH: 2, kv: 30000,
+    propSize: 1.22,
+    propPitch: 1.0, blades: 2,
+    voltage: 4.35,
+    droneWeight: 18, battWeight: 8, // Total ~26g
+    ducted: true, videoSystem: "Analog",
+    desc: "0702 @ 30KV. Elite racing spec - twitchy, demands perfect tune.",
+    tier: "Racing/Advanced"
+  },
+
+  // --- 75mm WHOOPS (Practical Tiers) ---
+  "75mm Analog (Standard)": {
+    statorW: 8, statorH: 2, kv: 19500,
     propSize: 1.6, // 40mm
     propPitch: 1.5, blades: 3,
     voltage: 4.35,
-    droneWeight: 28, battWeight: 13, // Total ~41g
-    desc: "Outdoor micro freestyle. More authority for wind."
+    droneWeight: 26, battWeight: 12, // Total ~38g
+    ducted: true, videoSystem: "Analog",
+    desc: "0802 @ 19.5KV. Flies great indoor/outdoor, proven reliability.",
+    tier: "Standard"
   },
+  "75mm O4 HD (Power)": {
+    statorW: 10, statorH: 2, kv: 22000,
+    propSize: 1.6,
+    propPitch: 1.5, blades: 3,
+    voltage: 4.35,
+    droneWeight: 35, battWeight: 13, // Total ~48g (O4 Lite adds ~9g)
+    ducted: true, videoSystem: "O4",
+    desc: "1002 @ 22KV. Necessary for HD video system weight (35-45g dry).",
+    tier: "HD/Advanced"
+  },
+  // --- 3-INCH TOOTHPICKS ---
   "3-inch Toothpick (2S Ultralight)": {
     statorW: 12, statorH: 2.5, kv: 8000,
     propSize: 3.0,
     propPitch: 1.8, blades: 2,
     voltage: 7.4, // 2S
     droneWeight: 55, battWeight: 30, // Total ~85g
-    desc: "Featherweight 2S. Extremely agile but struggles in wind."
+    ducted: false, videoSystem: "Analog",
+    desc: "Featherweight 2S. Extremely agile but struggles in wind.",
+    tier: "Ultralight"
   },
   "3-inch Toothpick (3S Power)": {
     statorW: 13, statorH: 3, kv: 5000,
@@ -34,23 +74,33 @@ const PRESETS = {
     propPitch: 2.5, blades: 2,
     voltage: 11.1, // 3S
     droneWeight: 70, battWeight: 45, // Total ~115g
-    desc: "High power-to-weight micro. Bridges gap to 3.5-inch."
+    ducted: false, videoSystem: "Analog",
+    desc: "High power-to-weight micro. Bridges gap to 3.5-inch.",
+    tier: "Performance"
   },
+
+  // --- 3.5-INCH (Sub-250g Class) ---
   "3.5-inch Freestyle": {
     statorW: 18, statorH: 4, kv: 3500,
     propSize: 3.5,
     propPitch: 2.5, blades: 3,
     voltage: 14.8, // 4S
     droneWeight: 160, battWeight: 90, // Total ~250g
-    desc: "Sub-250g performance. 5-inch feel in a small package."
+    ducted: false, videoSystem: "Analog",
+    desc: "Sub-250g performance. 5-inch feel in a small package.",
+    tier: "Freestyle"
   },
+
+  // --- 5-INCH (Standard Class) ---
   "5-inch Freestyle (Juicy)": {
     statorW: 23, statorH: 6, kv: 1750,
     propSize: 5.1,
     propPitch: 4.3, blades: 3,
     voltage: 22.2, // 6S
     droneWeight: 420, battWeight: 220, // Total ~640g
-    desc: "The 2025 Standard. Smooth, heavy, momentum-based."
+    ducted: false, videoSystem: "O4",
+    desc: "The 2025 Standard. Smooth, heavy, momentum-based.",
+    tier: "Freestyle"
   },
   "5-inch Racing (Pro)": {
     statorW: 22, statorH: 7, kv: 2050,
@@ -58,15 +108,21 @@ const PRESETS = {
     propPitch: 4.9, blades: 3,
     voltage: 22.2,
     droneWeight: 320, battWeight: 200, // Total ~520g
-    desc: "Explosive top-end, high disk loading, locked-in."
+    ducted: false, videoSystem: "Analog",
+    desc: "Explosive top-end, high disk loading, locked-in.",
+    tier: "Racing"
   },
+
+  // --- 7-INCH+ (Long Range / Heavy Lift) ---
   "7-inch Long Range": {
     statorW: 28, statorH: 6.5, kv: 1300,
     propSize: 7.0,
     propPitch: 3.5, blades: 2,
     voltage: 22.2,
     droneWeight: 550, battWeight: 550, // Total ~1100g (Li-Ion)
-    desc: "Efficiency focus. Low RPM cruising."
+    ducted: false, videoSystem: "O4",
+    desc: "Efficiency focus. Low RPM cruising.",
+    tier: "Long Range"
   },
   "Cinelifter (X8 Heavy)": {
     statorW: 28, statorH: 12, kv: 1050,
@@ -74,7 +130,9 @@ const PRESETS = {
     propPitch: 4.5, blades: 3,
     voltage: 29.6, // 8S
     droneWeight: 1500, battWeight: 1200, // Payload + Batt
-    desc: "Industrial torque density. 8-motor configuration (Simulated as 4 heavy motors)."
+    ducted: false, videoSystem: "O4",
+    desc: "Industrial torque density. 8-motor configuration (Simulated as 4 heavy motors).",
+    tier: "Heavy Lift"
   }
 };
 
@@ -192,7 +250,9 @@ export default function FPVAnalysisTool() {
     blades: 3,
     voltage: 22.2,
     droneWeight: 420,
-    battWeight: 220
+    battWeight: 220,
+    ducted: false,
+    videoSystem: "O4"
   });
 
   // --- PHYSICS ENGINE (Section 7) ---
@@ -203,9 +263,13 @@ export default function FPVAnalysisTool() {
     const auw = inputs.droneWeight + inputs.battWeight; // g
     const auwKg = auw / 1000;
 
-    // 2. Thrust Estimate
-    const k_thrust = 0.042; 
-    const thrustPerMotorG = (statorVol * k_thrust) * Math.pow(inputs.propSize / 5, 1.5) * ((inputs.kv * inputs.voltage) / 1000);
+    // 2. Thrust Estimate (with Duct Efficiency Penalty)
+    const k_thrust = 0.042;
+    const thrustPerMotorRaw = (statorVol * k_thrust) * Math.pow(inputs.propSize / 5, 1.5) * ((inputs.kv * inputs.voltage) / 1000);
+
+    // Duct penalty: typically 15-25% thrust loss for ducted/prop-guarded builds
+    const ductPenalty = inputs.ducted ? 0.20 : 0; // 20% thrust loss
+    const thrustPerMotorG = thrustPerMotorRaw * (1 - ductPenalty);
     const totalThrustG = thrustPerMotorG * 4;
     const twr = totalThrustG / auw;
 
@@ -227,6 +291,16 @@ export default function FPVAnalysisTool() {
     const scoreStabRaw = 10 - (Math.abs(diskLoading - idealDL) * 20);
     const scoreStab = Math.min(10, Math.max(1, scoreStabRaw));
 
+    // 6. Reliability Score (Lower KV = cooler running = longer life)
+    // Also penalize high stator volume + high KV combos (amp hogs)
+    const kvThermalFactor = inputs.kv < 2000 ? 10 :
+                            inputs.kv < 5000 ? 8 :
+                            inputs.kv < 15000 ? 6 :
+                            inputs.kv < 25000 ? 4 : 2;
+
+    const ampHogPenalty = (statorVol > 2000 && inputs.kv > 2000 && inputs.propSize > 4) ? -3 : 0;
+    const scoreReliability = Math.min(10, Math.max(1, kvThermalFactor + ampHogPenalty));
+
     return {
       statorVol,
       auw,
@@ -236,10 +310,12 @@ export default function FPVAnalysisTool() {
       scoreAuth,
       scoreResp,
       scoreStab,
+      scoreReliability,
       inertiaProxy,
       respIndex,
       scoreAuthRaw,
-      scoreStabRaw
+      scoreStabRaw,
+      ductPenalty
     };
   }, [inputs]);
 
@@ -331,7 +407,9 @@ export default function FPVAnalysisTool() {
       blades: p.blades,
       voltage: p.voltage,
       droneWeight: p.droneWeight,
-      battWeight: p.battWeight
+      battWeight: p.battWeight,
+      ducted: p.ducted || false,
+      videoSystem: p.videoSystem || "Analog"
     });
   };
 
@@ -408,6 +486,55 @@ export default function FPVAnalysisTool() {
               <div className="mt-2 text-right font-bold text-white">AUW: {results.auw} g</div>
             </Card>
 
+            {/* BUILD CONFIGURATION */}
+            <Card title={<><Info size={18} className="text-cyan-400"/> Build Configuration</>}>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-300">Ducted/Prop Guards</span>
+                  <button
+                    onClick={() => update('ducted', !inputs.ducted)}
+                    className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                      inputs.ducted
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {inputs.ducted ? 'YES (-20% Thrust)' : 'NO'}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-300">Video System</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => update('videoSystem', 'Analog')}
+                      className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                        inputs.videoSystem === 'Analog'
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-slate-700 text-slate-400'
+                      }`}
+                    >
+                      Analog
+                    </button>
+                    <button
+                      onClick={() => update('videoSystem', 'O4')}
+                      className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                        inputs.videoSystem === 'O4'
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-slate-700 text-slate-400'
+                      }`}
+                    >
+                      DJI O4
+                    </button>
+                  </div>
+                </div>
+                {inputs.ducted && (
+                  <div className="text-xs text-amber-400 bg-amber-950/30 p-2 rounded border border-amber-800/30">
+                    ⚠ Duct penalty applied: Props with guards add drag but enable indoor flying.
+                  </div>
+                )}
+              </div>
+            </Card>
+
           </div>
 
           {/* RIGHT COLUMN: ANALYSIS */}
@@ -459,11 +586,17 @@ export default function FPVAnalysisTool() {
                     desc={results.scoreResp > 8 ? "Extremely twitchy. High PID D-term required." : results.scoreResp < 4 ? "Slow spool up. Smooth & cinematic." : "Balanced control."}
                     mathReveal={`Index = (Vol*100) / (AUW * Prop²) = ${results.respIndex.toFixed(1)}. Score = log10(Index) * 5.5`}
                   />
-                  <ScoreBar 
-                    label="Stability (Wind/Propwash)" 
-                    score={results.scoreStab} 
+                  <ScoreBar
+                    label="Stability (Wind/Propwash)"
+                    score={results.scoreStab}
                     desc={getStabilityDesc()}
                     mathReveal={`Target DL: 0.65. Score = 10 - (|${results.diskLoading.toFixed(2)} - 0.65| * 20)`}
+                  />
+                  <ScoreBar
+                    label="Reliability / Longevity"
+                    score={results.scoreReliability}
+                    desc={results.scoreReliability > 8 ? "Cool-running. Motors will last 3x longer." : results.scoreReliability < 4 ? "Thermal stress high. Expect shorter motor life." : "Moderate thermal load."}
+                    mathReveal={`Lower KV = cooler = longer life. KV ${inputs.kv} → Thermal Score ${results.scoreReliability.toFixed(1)}`}
                   />
                 </div>
 
@@ -518,10 +651,38 @@ export default function FPVAnalysisTool() {
               </ul>
             </Card>
 
+            {/* MODEL ACCURACY WARNINGS */}
+            <Card className="border-l-4 border-l-amber-500 bg-slate-900/50">
+              <h4 className="font-bold text-amber-400 mb-3 flex items-center gap-2">
+                <AlertTriangle size={16}/> Mathematical Model Limitations
+              </h4>
+              <div className="text-xs text-slate-400 space-y-2">
+                <p>
+                  <strong className="text-slate-300">Thrust Estimation:</strong> The model ignores prop pitch, blade count,
+                  and air density. Real thrust can vary <strong className="text-amber-400">30-50%</strong> based on prop
+                  selection alone. Always validate with thrust stand data or flight testing.
+                </p>
+                <p>
+                  <strong className="text-slate-300">Assumptions:</strong> Assumes N52H magnets uniformly. Budget motors
+                  often use weaker magnets, making torque estimates optimistic. Battery chemistry (GNB27, BT2.0) and internal
+                  resistance affect real-world performance significantly.
+                </p>
+                <p>
+                  <strong className="text-slate-300">Intended Use:</strong> This tool is for <em>comparative analysis</em> and
+                  component selection guidance—not absolute performance prediction. Use as a starting point for builds,
+                  not a guarantee of flight characteristics.
+                </p>
+                <p className="text-slate-500 italic pt-2 border-t border-slate-800">
+                  For production builds: Cross-reference with thrust stand databases (Chris Rosser, Bardwell) and community
+                  flight reports. The "practical tier" presets reflect real-world builder experience, not just theory.
+                </p>
+              </div>
+            </Card>
+
             {/* FOOTER NOTES */}
             <div className="text-xs text-slate-600 mt-4 text-center">
-              Based on the "2025 Comprehensive Analysis" physics model. 
-              Assumes modern N52 magnets and standard airfoil geometry. 
+              Based on the "2025 Comprehensive Analysis" physics model with practical corrections.
+              Assumes modern N52 magnets and standard airfoil geometry.
               Values are theoretical estimates for component selection.
             </div>
 
