@@ -493,6 +493,28 @@
       }
     };
 
+    // Common motor sizes for wizard mode
+    const COMMON_MOTOR_SIZES = [
+      '0702', '0802', '0803', '1002', '1103', '1105',
+      '1202', '1203', '1204', '1303', '1404', '1505', '1506',
+      '1804', '1806', '2004', '2005', '2006', '2007',
+      '2204', '2205', '2206', '2207', '2208',
+      '2305', '2306', '2307', '2308',
+      '2405', '2406', '2407', '2408',
+      '2505', '2506', '2507', '2508',
+      '2806', '2807', '2810', '2812',
+      '3110', '3115'
+    ];
+
+    // Common KV ratings for wizard mode
+    const COMMON_KV_RATINGS = [
+      800, 1000, 1200, 1300, 1400, 1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 2000,
+      2100, 2200, 2300, 2400, 2450, 2500, 2600, 2700, 2800,
+      3000, 3200, 3500, 3800, 4000, 4500, 5000,
+      6000, 7000, 8000, 9000, 10000,
+      12000, 15000, 18000, 19500, 20000, 22000, 25000, 30000, 35000
+    ];
+
     // Get elements
     const elements = {
       wizardToggle: document.getElementById('wizardToggle'),
@@ -517,22 +539,162 @@
 
     // Event listeners
     elements.wizardToggle.addEventListener('click', toggleWizardMode);
-    elements.frameSize.addEventListener('change', updateBuild);
+    elements.frameSize.addEventListener('change', onFrameSizeChange);
     elements.propPitch.addEventListener('input', updateBuild);
     elements.propBlades.addEventListener('input', updateBuild);
     elements.motorSize.addEventListener('input', updateBuild);
     elements.motorKv.addEventListener('input', updateBuild);
-    elements.batterySize.addEventListener('change', updateBuild);
+    elements.batterySize.addEventListener('change', onBatterySizeChange);
     elements.fcStack.addEventListener('input', updateBuild);
     elements.vtxType.addEventListener('change', updateBuild);
     elements.hasGps.addEventListener('change', updateBuild);
     elements.weightOverride.addEventListener('input', updateBuild);
 
+    function onFrameSizeChange() {
+      updateBuild();
+      // If wizard mode, update motor and KV options based on new frame
+      if (wizardMode) {
+        const currentMotorSize = elements.motorSize.value;
+        const currentKv = elements.motorKv.value;
+        convertToDropdown('motorSize', getFilteredMotorSizes(), currentMotorSize);
+        convertToDropdown('motorKv', getFilteredKvRatings(), currentKv);
+      }
+    }
+
+    function onBatterySizeChange() {
+      updateBuild();
+      // If wizard mode, update KV options based on new battery
+      if (wizardMode) {
+        const currentKv = elements.motorKv.value;
+        convertToDropdown('motorKv', getFilteredKvRatings(), currentKv);
+      }
+    }
+
     function toggleWizardMode() {
       wizardMode = !wizardMode;
       elements.wizardToggle.classList.toggle('active');
       elements.wizardToggle.textContent = wizardMode ? '🧙 Wizard Mode Active' : '🧙 Enable Wizard Mode';
+
+      // Store current values
+      const currentMotorSize = elements.motorSize.value;
+      const currentKv = elements.motorKv.value;
+
+      if (wizardMode) {
+        // Switch to dropdowns
+        convertToDropdown('motorSize', getFilteredMotorSizes(), currentMotorSize);
+        convertToDropdown('motorKv', getFilteredKvRatings(), currentKv);
+      } else {
+        // Switch back to text inputs
+        convertToTextInput('motorSize', currentMotorSize, 'e.g., 2207, 1404, 2306');
+        convertToNumberInput('motorKv', currentKv, 'e.g., 2400, 1750');
+      }
+
       updateBuild();
+    }
+
+    function convertToDropdown(fieldId, options, currentValue) {
+      const container = elements[fieldId].parentElement;
+      const label = container.querySelector('label');
+      const oldInput = elements[fieldId];
+
+      const select = document.createElement('select');
+      select.id = fieldId;
+      select.innerHTML = '<option value="">Select...</option>' +
+        options.map(opt => `<option value="${opt}" ${opt == currentValue ? 'selected' : ''}>${opt}</option>`).join('');
+
+      // Copy styles
+      select.className = oldInput.className;
+
+      // Replace element
+      oldInput.replaceWith(select);
+      elements[fieldId] = select;
+
+      // Re-attach event listener
+      if (fieldId === 'motorSize') {
+        select.addEventListener('change', onMotorSizeChange);
+      } else if (fieldId === 'motorKv') {
+        select.addEventListener('change', updateBuild);
+      }
+    }
+
+    function convertToTextInput(fieldId, currentValue, placeholder) {
+      const container = elements[fieldId].parentElement;
+      const oldInput = elements[fieldId];
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = fieldId;
+      input.value = currentValue || '';
+      input.placeholder = placeholder;
+      input.pattern = '[0-9]{4}';
+
+      // Copy styles
+      input.className = oldInput.className;
+
+      // Replace element
+      oldInput.replaceWith(input);
+      elements[fieldId] = input;
+
+      // Re-attach event listener
+      input.addEventListener('input', updateBuild);
+    }
+
+    function convertToNumberInput(fieldId, currentValue, placeholder) {
+      const container = elements[fieldId].parentElement;
+      const oldInput = elements[fieldId];
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.id = fieldId;
+      input.value = currentValue || '';
+      input.placeholder = placeholder;
+      input.step = '50';
+      input.min = '500';
+      input.max = '50000';
+
+      // Copy styles
+      input.className = oldInput.className;
+
+      // Replace element
+      oldInput.replaceWith(input);
+      elements[fieldId] = input;
+
+      // Re-attach event listener
+      input.addEventListener('input', updateBuild);
+    }
+
+    function getFilteredMotorSizes() {
+      if (!buildData.frameSize) return COMMON_MOTOR_SIZES;
+
+      const rules = COMPATIBILITY_RULES.motorSizing[buildData.frameSize];
+      if (!rules) return COMMON_MOTOR_SIZES;
+
+      return COMMON_MOTOR_SIZES.filter(size => {
+        const width = parseInt(size.substring(0, 2));
+        const height = parseInt(size.substring(2, 4));
+        const volume = Math.PI * Math.pow(width / 2, 2) * height;
+        return volume >= rules.min && volume <= rules.max;
+      });
+    }
+
+    function getFilteredKvRatings() {
+      if (!buildData.frameSize || !buildData.batterySize) return COMMON_KV_RATINGS;
+
+      const rules = COMPATIBILITY_RULES.kvRanges[buildData.frameSize];
+      if (!rules || !rules[buildData.batterySize]) return COMMON_KV_RATINGS;
+
+      const [minKv, maxKv] = rules[buildData.batterySize];
+      return COMMON_KV_RATINGS.filter(kv => kv >= minKv * 0.8 && kv <= maxKv * 1.2);
+    }
+
+    function onMotorSizeChange() {
+      updateBuild();
+      // If wizard mode, update KV options based on new motor selection
+      if (wizardMode) {
+        const currentKv = elements.motorKv.value;
+        const filteredKvs = getFilteredKvRatings();
+        convertToDropdown('motorKv', filteredKvs, currentKv);
+      }
     }
 
     function updateBuild() {
