@@ -3,563 +3,942 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FPV Propulsion Architect - v2025.3</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Babel Standalone for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+  <title>FPV Quad Build Validator</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #e2e8f0;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 0;
+      border-bottom: 2px solid #334155;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .main-grid {
+        grid-template-columns: 400px 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #06b6d4;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    .viz-container {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      position: relative;
+    }
+
+    #quadCanvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-box {
+      background: #0f172a;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #06b6d4;
+    }
+
+    .metric-unit {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-left: 0.25rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: start;
+      gap: 0.75rem;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .alert-warning {
+      background: rgba(251, 146, 60, 0.1);
+      border: 1px solid rgba(251, 146, 60, 0.3);
+      color: #fdba74;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+
+    .alert-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .characteristics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .characteristic-tag {
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #334155, transparent);
+      margin: 2rem 0;
+    }
+
+    .wizard-toggle {
+      background: #334155;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: none;
+      color: #e2e8f0;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .wizard-toggle:hover {
+      background: #475569;
+    }
+
+    .wizard-toggle.active {
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      color: white;
+    }
+
+    .optional-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 8px;
+      border: 1px dashed #334155;
+    }
+
+    .optional-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="container">
+    <header>
+      <h1>FPV Quad Build Validator</h1>
+      <p class="subtitle">Check compatibility, estimate weight, and characterize flight behavior before you build</p>
+    </header>
 
-  <script type="text/babel">
-    const { useState, useMemo } = React;
+    <div class="main-grid">
+      <!-- Input Panel -->
+      <div>
+        <button class="wizard-toggle" id="wizardToggle">
+          🧙 Enable Wizard Mode
+        </button>
 
-    // Simple inline SVG icon components
-    const Icon = ({ size = 24, children, className = "" }) => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-        style={{ display: 'inline-block', verticalAlign: 'middle' }}
-      >
-        {children}
-      </svg>
-    );
+        <div class="card">
+          <div class="card-title">⚙️ Build Components</div>
 
-    const Settings = (props) => (
-      <Icon {...props}>
-        <circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/><path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24"/><path d="m1 12h6m6 0h6"/><path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24"/>
-      </Icon>
-    );
-
-    const Zap = (props) => (
-      <Icon {...props}>
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-      </Icon>
-    );
-
-    const Wind = (props) => (
-      <Icon {...props}>
-        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
-      </Icon>
-    );
-
-    const Weight = (props) => (
-      <Icon {...props}>
-        <circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"/>
-      </Icon>
-    );
-
-    const Info = (props) => (
-      <Icon {...props}>
-        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
-      </Icon>
-    );
-
-    const BarChart3 = (props) => (
-      <Icon {...props}>
-        <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
-      </Icon>
-    );
-
-    const RotateCw = (props) => (
-      <Icon {...props}>
-        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
-      </Icon>
-    );
-
-    const CheckCircle = (props) => (
-      <Icon {...props}>
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-      </Icon>
-    );
-
-    const AlertTriangle = (props) => (
-      <Icon {...props}>
-        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
-      </Icon>
-    );
-
-    const Calculator = (props) => (
-      <Icon {...props}>
-        <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/>
-      </Icon>
-    );
-
-    // --- CONSTANTS & REFERENCE DATA ---
-
-    const PRESETS = {
-      "65mm Analog (Budget)": {
-        statorW: 8, statorH: 2, kv: 19500, propSize: 1.22,
-        propPitch: 1.0, blades: 2, voltage: 4.35,
-        droneWeight: 22, battWeight: 9, ducted: true, videoSystem: "Analog",
-        desc: "Standard 0802 @ 19.5KV. Reliable, cool-running, easy to tune.",
-        tier: "Budget/Beginner"
-      },
-      "65mm Analog (Intermediate)": {
-        statorW: 8, statorH: 2, kv: 25000, propSize: 1.22,
-        propPitch: 1.0, blades: 2, voltage: 4.35,
-        droneWeight: 21, battWeight: 8, ducted: true, videoSystem: "Analog",
-        desc: "0802 @ 25KV. More punch, still manageable heat.",
-        tier: "Intermediate"
-      },
-      "65mm Racing (Advanced)": {
-        statorW: 7, statorH: 2, kv: 30000, propSize: 1.22,
-        propPitch: 1.0, blades: 2, voltage: 4.35,
-        droneWeight: 18, battWeight: 8, ducted: true, videoSystem: "Analog",
-        desc: "0702 @ 30KV. Elite racing spec - twitchy, demands perfect tune.",
-        tier: "Racing/Advanced"
-      },
-      "75mm Analog (Standard)": {
-        statorW: 8, statorH: 2, kv: 19500, propSize: 1.6,
-        propPitch: 1.5, blades: 3, voltage: 4.35,
-        droneWeight: 26, battWeight: 12, ducted: true, videoSystem: "Analog",
-        desc: "0802 @ 19.5KV. Flies great indoor/outdoor, proven reliability.",
-        tier: "Standard"
-      },
-      "75mm O4 HD (Power)": {
-        statorW: 10, statorH: 2, kv: 22000, propSize: 1.6,
-        propPitch: 1.5, blades: 3, voltage: 4.35,
-        droneWeight: 35, battWeight: 13, ducted: true, videoSystem: "O4",
-        desc: "1002 @ 22KV. Necessary for HD video system weight (35-45g dry).",
-        tier: "HD/Advanced"
-      },
-      "3-inch Toothpick (2S Ultralight)": {
-        statorW: 12, statorH: 2.5, kv: 8000, propSize: 3.0,
-        propPitch: 1.8, blades: 2, voltage: 7.4,
-        droneWeight: 55, battWeight: 30, ducted: false, videoSystem: "Analog",
-        desc: "Featherweight 2S. Extremely agile but struggles in wind.",
-        tier: "Ultralight"
-      },
-      "3-inch Toothpick (3S Power)": {
-        statorW: 13, statorH: 3, kv: 5000, propSize: 3.0,
-        propPitch: 2.5, blades: 2, voltage: 11.1,
-        droneWeight: 70, battWeight: 45, ducted: false, videoSystem: "Analog",
-        desc: "High power-to-weight micro. Bridges gap to 3.5-inch.",
-        tier: "Performance"
-      },
-      "3.5-inch Freestyle": {
-        statorW: 18, statorH: 4, kv: 3500, propSize: 3.5,
-        propPitch: 2.5, blades: 3, voltage: 14.8,
-        droneWeight: 160, battWeight: 90, ducted: false, videoSystem: "Analog",
-        desc: "Sub-250g performance. 5-inch feel in a small package.",
-        tier: "Freestyle"
-      },
-      "5-inch Freestyle (Juicy)": {
-        statorW: 23, statorH: 6, kv: 1750, propSize: 5.1,
-        propPitch: 4.3, blades: 3, voltage: 22.2,
-        droneWeight: 420, battWeight: 220, ducted: false, videoSystem: "O4",
-        desc: "The 2025 Standard. Smooth, heavy, momentum-based.",
-        tier: "Freestyle"
-      },
-      "5-inch Racing (Pro)": {
-        statorW: 22, statorH: 7, kv: 2050, propSize: 5.1,
-        propPitch: 4.9, blades: 3, voltage: 22.2,
-        droneWeight: 320, battWeight: 200, ducted: false, videoSystem: "Analog",
-        desc: "Explosive top-end, high disk loading, locked-in.",
-        tier: "Racing"
-      },
-      "7-inch Long Range": {
-        statorW: 28, statorH: 6.5, kv: 1300, propSize: 7.0,
-        propPitch: 3.5, blades: 2, voltage: 22.2,
-        droneWeight: 550, battWeight: 550, ducted: false, videoSystem: "O4",
-        desc: "Efficiency focus. Low RPM cruising.",
-        tier: "Long Range"
-      },
-      "Cinelifter (X8 Heavy)": {
-        statorW: 28, statorH: 12, kv: 1050, propSize: 8.0,
-        propPitch: 4.5, blades: 3, voltage: 29.6,
-        droneWeight: 1500, battWeight: 1200, ducted: false, videoSystem: "O4",
-        desc: "Industrial torque density. 8-motor configuration (Simulated as 4 heavy motors).",
-        tier: "Heavy Lift"
-      }
-    };
-
-    const STATOR_GUIDE = [
-      { prop: 2, min: 250, sweet: 450, max: 600, label: "Micro/Whoop" },
-      { prop: 3, min: 280, sweet: 400, max: 600, label: "Toothpick" },
-      { prop: 3.5, min: 900, sweet: 1600, max: 2100, label: "Sub-250 Freestyle" },
-      { prop: 5, min: 2000, sweet: 2600, max: 3500, label: "Standard 5-inch" },
-      { prop: 7, min: 3000, sweet: 4500, max: 5500, label: "Macro/Long Range" },
-      { prop: 8, min: 5000, sweet: 7000, max: 12000, label: "Heavy Lift/Cinelifter" }
-    ];
-
-    // --- HELPER COMPONENTS ---
-
-    const Tooltip = ({ content, children }) => (
-      <div className="group relative flex items-center justify-center">
-        {children}
-        <div className="pointer-events-none absolute bottom-full mb-2 hidden w-64 rounded bg-black p-3 text-xs text-white opacity-0 shadow-lg group-hover:block group-hover:opacity-100 z-50 border border-slate-700 font-mono">
-          {content}
-          <div className="absolute top-full left-1/2 -ml-1 h-2 w-2 -translate-y-1 rotate-45 bg-black border-r border-b border-slate-700"></div>
-        </div>
-      </div>
-    );
-
-    const Card = ({ children, title, className = "" }) => (
-      <div className={`bg-slate-800 border border-slate-700 rounded-lg p-5 shadow-xl ${className}`}>
-        {title && <h3 className="text-slate-200 font-bold text-lg mb-4 flex items-center gap-2">{title}</h3>}
-        {children}
-      </div>
-    );
-
-    const Slider = ({ label, value, onChange, min, max, step, unit }) => (
-      <div className="mb-4">
-        <div className="flex justify-between text-sm text-slate-400 mb-1">
-          <span>{label}</span>
-          <span className="text-cyan-400 font-mono">{value} {unit}</span>
-        </div>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400"
-        />
-      </div>
-    );
-
-    const ScoreBar = ({ label, score, desc, mathReveal }) => {
-      let colorClass = "bg-slate-500";
-      let textClass = "text-slate-500";
-
-      if (score < 4) {
-        colorClass = "bg-rose-500";
-        textClass = "text-rose-400";
-      } else if (score >= 4 && score < 7) {
-        colorClass = "bg-amber-500";
-        textClass = "text-amber-400";
-      } else if (score >= 7 && score < 8.5) {
-        colorClass = "bg-emerald-500";
-        textClass = "text-emerald-400";
-      } else {
-        colorClass = "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]";
-        textClass = "text-cyan-400";
-      }
-
-      return (
-        <div className="mb-6">
-          <div className="flex justify-between items-end mb-1">
-            <Tooltip content={mathReveal}>
-              <span className="text-slate-300 font-bold border-b border-dotted border-slate-600 cursor-help">{label}</span>
-            </Tooltip>
-            <span className={`text-2xl font-black ${textClass} transition-colors duration-300`}>
-              {score.toFixed(1)}<span className="text-sm text-slate-500 font-normal">/10</span>
-            </span>
+          <div class="form-group">
+            <label>Frame Size</label>
+            <select id="frameSize">
+              <option value="">Select frame size...</option>
+              <option value="1">1" (Tiny Whoop)</option>
+              <option value="2">2" (Whoop/Indoor)</option>
+              <option value="2.5">2.5" (Small Whoop)</option>
+              <option value="3">3" (Toothpick/Cinewhoop)</option>
+              <option value="3.5">3.5" (Ultralight)</option>
+              <option value="5">5" (Standard Freestyle)</option>
+              <option value="6">6" (Hybrid)</option>
+              <option value="7">7" (Long Range)</option>
+              <option value="10">10" (Heavy Lift)</option>
+            </select>
           </div>
-          <div className="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700">
-            <div
-              className={`h-full ${colorClass} transition-all duration-500 ease-out`}
-              style={{ width: `${Math.min(100, Math.max(0, score * 10))}%` }}
-            />
+
+          <div class="form-group">
+            <label>Propeller Details (Optional)</label>
+            <div class="input-group">
+              <input type="number" id="propPitch" placeholder="Pitch (e.g., 4.3)" step="0.1" min="0">
+              <input type="number" id="propBlades" placeholder="Blades" min="2" max="6">
+            </div>
           </div>
-          <div className={`text-xs mt-1 italic text-right transition-colors duration-300 ${textClass.replace('text-','text-opacity-80 ')}`}>
-            {desc}
+
+          <div class="form-group">
+            <label>Motor Size</label>
+            <input type="text" id="motorSize" placeholder="e.g., 2207, 1404, 2306" pattern="[0-9]{4}">
+            <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.25rem; display: block;">
+              Format: XXYY (e.g., 2207 = 22mm stator width, 7mm height)
+            </small>
           </div>
-        </div>
-      );
-    };
 
-    const MetricBox = ({ label, value, unit, mathReveal }) => (
-      <Tooltip content={mathReveal}>
-        <div className="bg-slate-900/50 p-3 rounded border border-slate-700/50 text-center hover:bg-slate-800 transition-colors cursor-help">
-          <div className="text-xs text-slate-500 uppercase tracking-wider flex items-center justify-center gap-1">
-            {label} <Calculator size={10} className="opacity-50"/>
+          <div class="form-group">
+            <label>Motor KV</label>
+            <input type="number" id="motorKv" placeholder="e.g., 2400, 1750" step="50" min="500" max="50000">
           </div>
-          <div className="text-xl font-mono text-cyan-400 font-bold">
-            {value} <span className="text-xs text-slate-500">{unit}</span>
+
+          <div class="form-group">
+            <label>Battery</label>
+            <select id="batterySize">
+              <option value="">Select battery...</option>
+              <option value="1">1S (3.7-4.2V)</option>
+              <option value="2">2S (7.4-8.4V)</option>
+              <option value="3">3S (11.1-12.6V)</option>
+              <option value="4">4S (14.8-16.8V)</option>
+              <option value="6">6S (22.2-25.2V)</option>
+              <option value="8">8S (29.6-33.6V)</option>
+            </select>
           </div>
-        </div>
-      </Tooltip>
-    );
 
-    // --- MAIN APPLICATION ---
+          <div class="optional-section">
+            <span class="optional-label">Optional Components</span>
 
-    function FPVAnalysisTool() {
-      const [inputs, setInputs] = useState({
-        statorW: 23, statorH: 6, kv: 1750, propSize: 5.1,
-        propPitch: 4.3, blades: 3, voltage: 22.2,
-        droneWeight: 420, battWeight: 220,
-        ducted: false, videoSystem: "O4"
-      });
+            <div class="form-group">
+              <label>Flight Controller / ESC</label>
+              <input type="text" id="fcStack" placeholder="e.g., F7 AIO, 4-in-1 ESC">
+            </div>
 
-      const results = useMemo(() => {
-        const statorVol = Math.PI * Math.pow(inputs.statorW / 2, 2) * inputs.statorH;
-        const auw = inputs.droneWeight + inputs.battWeight;
-        const k_thrust = 0.042;
-        const thrustPerMotorRaw = (statorVol * k_thrust) * Math.pow(inputs.propSize / 5, 1.5) * ((inputs.kv * inputs.voltage) / 1000);
-        const ductPenalty = inputs.ducted ? 0.20 : 0;
-        const thrustPerMotorG = thrustPerMotorRaw * (1 - ductPenalty);
-        const totalThrustG = thrustPerMotorG * 4;
-        const twr = totalThrustG / auw;
-        const scoreAuthRaw = (twr - 2) * 0.85;
-        const scoreAuth = Math.min(10, Math.max(0, scoreAuthRaw));
-        const inertiaProxy = auw * Math.pow(inputs.propSize, 2);
-        const respIndex = (statorVol * 100) / inertiaProxy;
-        const scoreRespRaw = Math.log10(respIndex) * 5.5;
-        const scoreResp = Math.min(10, Math.max(0, scoreRespRaw));
-        const propRadiusCm = (inputs.propSize * 2.54) / 2;
-        const diskAreaCm2 = 4 * Math.PI * Math.pow(propRadiusCm, 2);
-        const diskLoading = auw / diskAreaCm2;
-        const idealDL = 0.65;
-        const scoreStabRaw = 10 - (Math.abs(diskLoading - idealDL) * 20);
-        const scoreStab = Math.min(10, Math.max(1, scoreStabRaw));
-        const kvThermalFactor = inputs.kv < 2000 ? 10 : inputs.kv < 5000 ? 8 : inputs.kv < 15000 ? 6 : inputs.kv < 25000 ? 4 : 2;
-        const ampHogPenalty = (statorVol > 2000 && inputs.kv > 2000 && inputs.propSize > 4) ? -3 : 0;
-        const scoreReliability = Math.min(10, Math.max(1, kvThermalFactor + ampHogPenalty));
+            <div class="form-group">
+              <label>VTx System</label>
+              <select id="vtxType">
+                <option value="none">None</option>
+                <option value="analog">Analog</option>
+                <option value="dji">DJI (Air Unit / O3 / O4)</option>
+                <option value="walksnail">Walksnail/Avatar</option>
+                <option value="hdzero">HDZero</option>
+              </select>
+            </div>
 
-        return { statorVol, auw, twr, totalThrustG, diskLoading, scoreAuth, scoreResp, scoreStab, scoreReliability, inertiaProxy, respIndex, scoreAuthRaw, scoreStabRaw, ductPenalty };
-      }, [inputs]);
-
-      const getStatorAnalysis = () => {
-        const vol = results.statorVol;
-        const { propSize, droneWeight, battWeight, statorW, statorH, kv } = inputs;
-        const auw = droneWeight + battWeight;
-        const guide = STATOR_GUIDE.reduce((prev, curr) => Math.abs(curr.prop - propSize) < Math.abs(prev.prop - propSize) ? curr : prev);
-
-        if (propSize >= 6 && auw > 1300) {
-          if (vol < 5000) return { text: "⚠️ Warning: Stator volume critically low for Heavy Lift payload. Motor saturation likely.", color: "text-rose-400" };
-          if (statorH < 9) return { text: "⚠️ Caution: For heavy payloads, consider taller stators (e.g., 2810, 2812) to sustain torque under continuous load.", color: "text-amber-400" };
-          return { text: "✅ Industrial Grade Torque Density. Excellent for X8 or heavy payloads.", color: "text-cyan-400" };
-        }
-
-        if (vol > guide.sweet + 500 && kv > 2000 && propSize > 4) {
-          return { text: "⚠️ Amp Hog Warning: Large stator volume + High KV will drain packs instantly. Good for 1-lap qualifying, bad for freestyle.", color: "text-rose-400" };
-        }
-
-        if (Math.abs(guide.prop - propSize) > 1.5) return { text: "Custom prop size detected. Standard heuristics may apply loosely.", color: "text-slate-400" };
-        if (vol < guide.min) return { text: "⚠️ Under-motored. Likely to overheat or lack authority recovery.", color: "text-rose-400" };
-        if (vol > guide.max) return { text: "⚠️ Over-motored. Excess bell weight is hurting your response score unnecessarily.", color: "text-amber-400" };
-        if (vol >= guide.sweet - 300 && vol <= guide.sweet + 500) return { text: `✅ Perfect 'Sweet Spot' stator volume for ${guide.label}.`, color: "text-emerald-400" };
-
-        return { text: "Acceptable stator sizing, but slight optimization possible.", color: "text-slate-300" };
-      };
-
-      const getStabilityDesc = () => {
-        const dl = results.diskLoading;
-        if (dl < 0.45) return "Very Floaty. Susceptible to wind gusts.";
-        if (dl >= 0.45 && dl < 0.55) return "Floaty / Efficient. Good for cinematic lines.";
-        if (dl >= 0.55 && dl <= 0.8) return "Locked-in. Ideal freestyle balance.";
-        if (dl > 0.8 && dl <= 1.0) return "Heavy / Racing. High downwash stability.";
-        return "Brick-like. Prone to prop-wash in descent.";
-      };
-
-      const getFlightFeel = () => {
-        let feel = [];
-        if (results.scoreAuth > 8) feel.push("Explosive Power");
-        else if (results.scoreAuth < 4) feel.push("Underpowered");
-        if (results.scoreResp > 8.5) feel.push("Twitchy/Razor Sharp");
-        else if (results.scoreResp < 5) feel.push("Smooth/Cinematic");
-        const dl = results.diskLoading;
-        if (dl < 0.5) feel.push("Floaty");
-        else if (dl > 0.8) feel.push("Heavy/Locked");
-        else feel.push("Balanced Stability");
-        return feel.join(" • ");
-      };
-
-      const loadPreset = (key) => {
-        const p = PRESETS[key];
-        setInputs({
-          statorW: p.statorW, statorH: p.statorH, kv: p.kv, propSize: p.propSize,
-          propPitch: p.propPitch, blades: p.blades, voltage: p.voltage,
-          droneWeight: p.droneWeight, battWeight: p.battWeight,
-          ducted: p.ducted || false, videoSystem: p.videoSystem || "Analog"
-        });
-      };
-
-      const update = (field, val) => setInputs(prev => ({ ...prev, [field]: val }));
-      const statorAnalysis = getStatorAnalysis();
-
-      return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans selection:bg-cyan-500/30">
-          <div className="max-w-6xl mx-auto">
-            <header className="mb-10 border-b border-slate-800 pb-6">
-              <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 mb-2">
-                FPV PROPULSION ARCHITECT <span className="text-sm font-mono text-slate-500 font-normal ml-2">v2025.3</span>
-              </h1>
-              <p className="text-slate-400 max-w-2xl">
-                Simulate flight characteristics before you build. Based on the 2025 Comprehensive Analysis physics model.
-              </p>
-            </header>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-4 space-y-6">
-                <Card title={<><Zap size={18} className="text-yellow-400"/> Quick Load Presets</>}>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(PRESETS).map(name => (
-                      <button
-                        key={name}
-                        onClick={() => loadPreset(name)}
-                        className="text-xs bg-slate-700 hover:bg-cyan-900 hover:text-cyan-200 text-slate-300 py-2 px-3 rounded transition-colors text-left truncate"
-                        title={PRESETS[name].desc}
-                      >
-                        {name}
-                      </button>
-                    ))}
-                  </div>
-                </Card>
-
-                <Card title={<><Settings size={18} className="text-cyan-400"/> Motor Configuration</>}>
-                  <Slider label="Stator Width" value={inputs.statorW} min={7} max={32} step={1} unit="mm" onChange={v => update('statorW', v)} />
-                  <Slider label="Stator Height" value={inputs.statorH} min={2} max={15} step={0.5} unit="mm" onChange={v => update('statorH', v)} />
-                  <Slider label="KV Rating" value={inputs.kv} min={800} max={35000} step={50} unit="KV" onChange={v => update('kv', v)} />
-                  <div className="mt-4 p-3 bg-slate-900 rounded text-xs text-slate-400 flex items-center gap-2">
-                    <Info size={14} />
-                    <Tooltip content={`Volume = π * (${inputs.statorW/2})² * ${inputs.statorH}`}>
-                      <span className="cursor-help border-b border-dotted border-slate-600">Stator Volume:</span>
-                    </Tooltip>
-                    <span className="text-cyan-400 font-mono ml-auto">{results.statorVol.toFixed(0)} mm³</span>
-                  </div>
-                </Card>
-
-                <Card title={<><Wind size={18} className="text-cyan-400"/> Prop & Power</>}>
-                  <Slider label="Prop Diameter" value={inputs.propSize} min={1.2} max={10} step={0.1} unit="in" onChange={v => update('propSize', v)} />
-                  <Slider label="System Voltage" value={inputs.voltage} min={3.7} max={50} step={0.1} unit="V" onChange={v => update('voltage', v)} />
-                  <div className="flex gap-2 text-xs text-slate-500 mt-2 font-mono">
-                    <span className="cursor-pointer hover:text-cyan-400" onClick={() => update('voltage', 4.35)}>[1S]</span>
-                    <span className="cursor-pointer hover:text-cyan-400" onClick={() => update('voltage', 7.4)}>[2S]</span>
-                    <span className="cursor-pointer hover:text-cyan-400" onClick={() => update('voltage', 11.1)}>[3S]</span>
-                    <span className="cursor-pointer hover:text-cyan-400" onClick={() => update('voltage', 16.8)}>[4S]</span>
-                    <span className="cursor-pointer hover:text-cyan-400" onClick={() => update('voltage', 22.2)}>[6S]</span>
-                  </div>
-                </Card>
-
-                <Card title={<><Weight size={18} className="text-cyan-400"/> Mass Properties</>}>
-                  <Slider label="Dry Weight" value={inputs.droneWeight} min={10} max={2000} step={5} unit="g" onChange={v => update('droneWeight', v)} />
-                  <Slider label="Battery Weight" value={inputs.battWeight} min={5} max={1500} step={5} unit="g" onChange={v => update('battWeight', v)} />
-                  <div className="mt-2 text-right font-bold text-white">AUW: {results.auw} g</div>
-                </Card>
-
-                <Card title={<><Info size={18} className="text-cyan-400"/> Build Configuration</>}>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-300">Ducted/Prop Guards</span>
-                      <button
-                        onClick={() => update('ducted', !inputs.ducted)}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-colors ${inputs.ducted ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                      >
-                        {inputs.ducted ? 'YES (-20% Thrust)' : 'NO'}
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-300">Video System</span>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => update('videoSystem', 'Analog')}
-                          className={`px-3 py-1 rounded text-xs font-bold transition-colors ${inputs.videoSystem === 'Analog' ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                        >
-                          Analog
-                        </button>
-                        <button
-                          onClick={() => update('videoSystem', 'O4')}
-                          className={`px-3 py-1 rounded text-xs font-bold transition-colors ${inputs.videoSystem === 'O4' ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-400'}`}
-                        >
-                          DJI O4
-                        </button>
-                      </div>
-                    </div>
-                    {inputs.ducted && (
-                      <div className="text-xs text-amber-400 bg-amber-950/30 p-2 rounded border border-amber-800/30">
-                        ⚠ Duct penalty applied: Props with guards add drag but enable indoor flying.
-                      </div>
-                    )}
-                  </div>
-                </Card>
+            <div class="form-group">
+              <label>GPS Module</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="hasGps">
+                <label for="hasGps" style="margin: 0; text-transform: none;">Include GPS</label>
               </div>
+            </div>
 
-              <div className="lg:col-span-8 space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricBox label="Thrust:Weight" value={results.twr.toFixed(1)} unit=": 1" mathReveal={`Thrust (${(results.totalThrustG/1000).toFixed(2)}kg) / AUW (${(results.auw/1000).toFixed(2)}kg)`} />
-                  <MetricBox label="Disk Loading" value={results.diskLoading.toFixed(2)} unit="g/cm²" mathReveal={`AUW (${results.auw}g) / DiskArea (4 * π * ${(inputs.propSize * 1.27).toFixed(1)}cm²)`} />
-                  <MetricBox label="Stator Volume" value={results.statorVol.toFixed(0)} unit="mm³" mathReveal={`π * r² * h = π * ${(inputs.statorW/2).toFixed(1)}² * ${inputs.statorH}`} />
-                  <MetricBox label="Est. Thrust" value={(results.totalThrustG / 1000).toFixed(1)} unit="kg" mathReveal={`(Vol * 0.042) * (Prop/5)^1.5 * (KV*V/1000) * 4 motors`} />
-                </div>
-
-                <Card title={<><BarChart3 size={18} className="text-cyan-400"/> Flight Character Analysis</>} className="bg-slate-800/80 backdrop-blur">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="flex-1">
-                      <ScoreBar label="Authority" score={results.scoreAuth} desc={results.scoreAuth > 7 ? "High ability to arrest momentum. Ideal for freestyle." : "Low authority. Careful with dives."} mathReveal={`Score = min(10, (TWR ${results.twr.toFixed(1)} - 2) * 0.85)`} />
-                      <ScoreBar label="Responsiveness" score={results.scoreResp} desc={results.scoreResp > 8 ? "Extremely twitchy. High PID D-term required." : results.scoreResp < 4 ? "Slow spool up. Smooth & cinematic." : "Balanced control."} mathReveal={`Index = (Vol*100) / (AUW * Prop²) = ${results.respIndex.toFixed(1)}. Score = log10(Index) * 5.5`} />
-                      <ScoreBar label="Stability (Wind/Propwash)" score={results.scoreStab} desc={getStabilityDesc()} mathReveal={`Target DL: 0.65. Score = 10 - (|${results.diskLoading.toFixed(2)} - 0.65| * 20)`} />
-                      <ScoreBar label="Reliability / Longevity" score={results.scoreReliability} desc={results.scoreReliability > 8 ? "Cool-running. Motors will last 3x longer." : results.scoreReliability < 4 ? "Thermal stress high. Expect shorter motor life." : "Moderate thermal load."} mathReveal={`Lower KV = cooler = longer life. KV ${inputs.kv} → Thermal Score ${results.scoreReliability.toFixed(1)}`} />
-                    </div>
-
-                    <div className="md:w-64 flex flex-col justify-center bg-slate-900 rounded-lg p-4 border border-slate-700">
-                      <div className="text-xs text-slate-500 uppercase font-bold mb-2">Predicted Feel</div>
-                      <div className="text-xl font-bold text-white mb-4 leading-tight">{getFlightFeel()}</div>
-                      <div className="h-px bg-slate-800 my-2"></div>
-                      <div className="text-xs text-slate-500 uppercase font-bold mb-2">Engineering Check</div>
-                      <div className={`text-sm mb-2 font-medium ${statorAnalysis.color}`}>{statorAnalysis.text}</div>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="border-l-4 border-l-cyan-500">
-                  <h4 className="font-bold text-white mb-2 flex items-center gap-2">
-                    <RotateCw size={16} className="text-cyan-400"/> Component Balance Check
-                  </h4>
-                  <ul className="space-y-2 text-sm text-slate-300">
-                    <li className="flex items-start gap-2">
-                      {results.scoreResp > 9 && results.scoreAuth < 4 ? <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5"/> : <CheckCircle size={16} className="text-emerald-500 shrink-0 mt-0.5"/>}
-                      <span>{results.scoreResp > 9 && results.scoreAuth < 4 ? "Warning: High Responsiveness but Low Authority. This is typical of ultralights but may struggle to recover from prop-wash." : "Responsiveness and Authority are well balanced."}</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      {results.twr > 15 ? <AlertTriangle size={16} className="text-rose-500 shrink-0 mt-0.5"/> : <CheckCircle size={16} className="text-emerald-500 shrink-0 mt-0.5"/>}
-                      <span>{results.twr > 15 ? "Warning: Extreme Thrust-to-Weight (>15:1). Ensure battery C-rating is sufficient (>100C) to prevent immediate sag." : "Thrust-to-Weight is within manageable limits for standard batteries."}</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Info size={16} className="text-cyan-500 shrink-0 mt-0.5"/>
-                      <span>{inputs.propSize < 4 ? "Micro Class Logic: Inertia reduction is prioritized over raw torque. Stator width matters less than bell mass." : "Macro Class Logic: Stator Volume is king. Ensure stator height is sufficient to maintain torque at high RPM."}</span>
-                    </li>
-                  </ul>
-                </Card>
-
-                <Card className="border-l-4 border-l-amber-500 bg-slate-900/50">
-                  <h4 className="font-bold text-amber-400 mb-3 flex items-center gap-2">
-                    <AlertTriangle size={16}/> Mathematical Model Limitations
-                  </h4>
-                  <div className="text-xs text-slate-400 space-y-2">
-                    <p><strong className="text-slate-300">Thrust Estimation:</strong> The model ignores prop pitch, blade count, and air density. Real thrust can vary <strong className="text-amber-400">30-50%</strong> based on prop selection alone. Always validate with thrust stand data or flight testing.</p>
-                    <p><strong className="text-slate-300">Assumptions:</strong> Assumes N52H magnets uniformly. Budget motors often use weaker magnets, making torque estimates optimistic. Battery chemistry (GNB27, BT2.0) and internal resistance affect real-world performance significantly.</p>
-                    <p><strong className="text-slate-300">Intended Use:</strong> This tool is for <em>comparative analysis</em> and component selection guidance—not absolute performance prediction. Use as a starting point for builds, not a guarantee of flight characteristics.</p>
-                    <p className="text-slate-500 italic pt-2 border-t border-slate-800">For production builds: Cross-reference with thrust stand databases (Chris Rosser, Bardwell) and community flight reports. The "practical tier" presets reflect real-world builder experience, not just theory.</p>
-                  </div>
-                </Card>
-
-                <div className="text-xs text-slate-600 mt-4 text-center">
-                  Based on the "2025 Comprehensive Analysis" physics model with practical corrections. Assumes modern N52 magnets and standard airfoil geometry. Values are theoretical estimates for component selection.
-                </div>
-              </div>
+            <div class="form-group">
+              <label>Dry Weight Override (grams)</label>
+              <input type="number" id="weightOverride" placeholder="Leave empty for auto-estimate" min="0" step="5">
             </div>
           </div>
         </div>
-      );
+      </div>
+
+      <!-- Results Panel -->
+      <div>
+        <div class="card">
+          <div class="card-title">📊 Build Analysis</div>
+
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <div class="metric-label">Estimated Weight</div>
+              <div class="metric-value"><span id="estimatedWeight">—</span><span class="metric-unit">g</span></div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Thrust:Weight</div>
+              <div class="metric-value"><span id="thrustWeight">—</span><span class="metric-unit">:1</span></div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Viability</div>
+              <div class="metric-value" id="viabilityScore">—</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Class</div>
+              <div class="metric-value" id="buildClass" style="font-size: 1rem;">—</div>
+            </div>
+          </div>
+
+          <div id="alerts"></div>
+
+          <div class="section-divider"></div>
+
+          <div class="viz-container">
+            <canvas id="quadCanvas" width="500" height="400"></canvas>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <div class="card-title">🎯 Flight Characteristics</div>
+          <div class="characteristics" id="characteristics">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Application state
+    let wizardMode = false;
+    let buildData = {
+      frameSize: null,
+      propPitch: null,
+      propBlades: null,
+      motorSize: null,
+      motorKv: null,
+      batterySize: null,
+      fcStack: '',
+      vtxType: 'none',
+      hasGps: false,
+      weightOverride: null
+    };
+
+    // Component weight database (grams)
+    const COMPONENT_WEIGHTS = {
+      vtx: {
+        none: 0,
+        analog: 3,
+        dji: 30,
+        walksnail: 28,
+        hdzero: 12
+      },
+      gps: 15,
+      // Frame weights by size (estimated base weight)
+      frame: {
+        1: 8,
+        2: 12,
+        2.5: 18,
+        3: 25,
+        3.5: 40,
+        5: 80,
+        6: 120,
+        7: 150,
+        10: 300
+      },
+      // Motor weights by stator size (per motor)
+      motorWeightPerVolume: 0.0015 // grams per mm³
+    };
+
+    // Compatibility rules
+    const COMPATIBILITY_RULES = {
+      // frameSize -> recommended motor size ranges [minStatorVolume, maxStatorVolume]
+      motorSizing: {
+        1: { min: 50, max: 200, recommended: [60, 120] },
+        2: { min: 80, max: 300, recommended: [100, 200] },
+        2.5: { min: 100, max: 350, recommended: [150, 250] },
+        3: { min: 250, max: 600, recommended: [300, 500] },
+        3.5: { min: 600, max: 1200, recommended: [800, 1100] },
+        5: { min: 1800, max: 3500, recommended: [2200, 2800] },
+        6: { min: 2500, max: 4500, recommended: [3000, 4000] },
+        7: { min: 3000, max: 6000, recommended: [4000, 5500] },
+        10: { min: 5000, max: 12000, recommended: [7000, 10000] }
+      },
+      // frameSize -> recommended KV ranges by battery size
+      kvRanges: {
+        1: { 1: [18000, 35000], 2: [12000, 25000] },
+        2: { 1: [15000, 30000], 2: [10000, 22000] },
+        2.5: { 1: [12000, 25000], 2: [8000, 18000] },
+        3: { 2: [6000, 12000], 3: [4000, 8000], 4: [3000, 6000] },
+        3.5: { 3: [3500, 6000], 4: [2500, 5000] },
+        5: { 4: [2200, 3500], 6: [1400, 2400] },
+        6: { 4: [2000, 3000], 6: [1300, 2200] },
+        7: { 6: [1000, 1800], 8: [800, 1400] },
+        10: { 6: [800, 1500], 8: [600, 1200] }
+      }
+    };
+
+    // Get elements
+    const elements = {
+      wizardToggle: document.getElementById('wizardToggle'),
+      frameSize: document.getElementById('frameSize'),
+      propPitch: document.getElementById('propPitch'),
+      propBlades: document.getElementById('propBlades'),
+      motorSize: document.getElementById('motorSize'),
+      motorKv: document.getElementById('motorKv'),
+      batterySize: document.getElementById('batterySize'),
+      fcStack: document.getElementById('fcStack'),
+      vtxType: document.getElementById('vtxType'),
+      hasGps: document.getElementById('hasGps'),
+      weightOverride: document.getElementById('weightOverride'),
+      estimatedWeight: document.getElementById('estimatedWeight'),
+      thrustWeight: document.getElementById('thrustWeight'),
+      viabilityScore: document.getElementById('viabilityScore'),
+      buildClass: document.getElementById('buildClass'),
+      alerts: document.getElementById('alerts'),
+      characteristics: document.getElementById('characteristics'),
+      canvas: document.getElementById('quadCanvas')
+    };
+
+    // Event listeners
+    elements.wizardToggle.addEventListener('click', toggleWizardMode);
+    elements.frameSize.addEventListener('change', updateBuild);
+    elements.propPitch.addEventListener('input', updateBuild);
+    elements.propBlades.addEventListener('input', updateBuild);
+    elements.motorSize.addEventListener('input', updateBuild);
+    elements.motorKv.addEventListener('input', updateBuild);
+    elements.batterySize.addEventListener('change', updateBuild);
+    elements.fcStack.addEventListener('input', updateBuild);
+    elements.vtxType.addEventListener('change', updateBuild);
+    elements.hasGps.addEventListener('change', updateBuild);
+    elements.weightOverride.addEventListener('input', updateBuild);
+
+    function toggleWizardMode() {
+      wizardMode = !wizardMode;
+      elements.wizardToggle.classList.toggle('active');
+      elements.wizardToggle.textContent = wizardMode ? '🧙 Wizard Mode Active' : '🧙 Enable Wizard Mode';
+      updateBuild();
     }
 
-    ReactDOM.render(<FPVAnalysisTool />, document.getElementById('root'));
+    function updateBuild() {
+      // Update build data from inputs
+      buildData.frameSize = parseFloat(elements.frameSize.value) || null;
+      buildData.propPitch = parseFloat(elements.propPitch.value) || null;
+      buildData.propBlades = parseInt(elements.propBlades.value) || null;
+      buildData.motorSize = elements.motorSize.value || null;
+      buildData.motorKv = parseInt(elements.motorKv.value) || null;
+      buildData.batterySize = parseInt(elements.batterySize.value) || null;
+      buildData.fcStack = elements.fcStack.value || '';
+      buildData.vtxType = elements.vtxType.value || 'none';
+      buildData.hasGps = elements.hasGps.checked;
+      buildData.weightOverride = parseInt(elements.weightOverride.value) || null;
+
+      // Perform analysis
+      const analysis = analyzeBuild(buildData);
+
+      // Update UI
+      displayResults(analysis);
+      drawQuad(analysis);
+    }
+
+    function analyzeBuild(data) {
+      const analysis = {
+        isValid: true,
+        warnings: [],
+        errors: [],
+        weight: 0,
+        thrustToWeight: 0,
+        viability: 0,
+        class: '',
+        characteristics: []
+      };
+
+      // Basic validation
+      if (!data.frameSize) {
+        analysis.errors.push('Please select a frame size');
+        analysis.isValid = false;
+        return analysis;
+      }
+
+      if (!data.motorSize) {
+        analysis.warnings.push('Motor size not specified');
+      }
+
+      if (!data.batterySize) {
+        analysis.warnings.push('Battery not specified');
+      }
+
+      // Parse motor size
+      let motorStatorWidth = 0;
+      let motorStatorHeight = 0;
+      let motorVolume = 0;
+
+      if (data.motorSize && data.motorSize.length === 4) {
+        motorStatorWidth = parseInt(data.motorSize.substring(0, 2));
+        motorStatorHeight = parseInt(data.motorSize.substring(2, 4));
+        motorVolume = Math.PI * Math.pow(motorStatorWidth / 2, 2) * motorStatorHeight;
+      }
+
+      // Check motor sizing compatibility
+      if (motorVolume > 0) {
+        const sizeRules = COMPATIBILITY_RULES.motorSizing[data.frameSize];
+        if (sizeRules) {
+          if (motorVolume < sizeRules.min) {
+            analysis.errors.push(`Motors too small for ${data.frameSize}" frame. Minimum stator volume: ${sizeRules.min}mm³ (you have ${Math.round(motorVolume)}mm³)`);
+          } else if (motorVolume > sizeRules.max) {
+            analysis.errors.push(`Motors too large for ${data.frameSize}" frame. Maximum stator volume: ${sizeRules.max}mm³ (you have ${Math.round(motorVolume)}mm³)`);
+          } else if (motorVolume < sizeRules.recommended[0] || motorVolume > sizeRules.recommended[1]) {
+            analysis.warnings.push(`Motors outside recommended range (${sizeRules.recommended[0]}-${sizeRules.recommended[1]}mm³). Build may work but won't be optimal.`);
+          }
+        }
+      }
+
+      // Check KV compatibility
+      if (data.motorKv && data.batterySize) {
+        const kvRules = COMPATIBILITY_RULES.kvRanges[data.frameSize];
+        if (kvRules && kvRules[data.batterySize]) {
+          const [minKv, maxKv] = kvRules[data.batterySize];
+          if (data.motorKv < minKv) {
+            analysis.warnings.push(`KV is low for this combination. Recommended range: ${minKv}-${maxKv}KV. May feel sluggish.`);
+          } else if (data.motorKv > maxKv) {
+            analysis.warnings.push(`KV is high for this combination. Recommended range: ${minKv}-${maxKv}KV. Motors may overheat.`);
+          }
+        }
+      }
+
+      // Estimate weight
+      let estimatedWeight = data.weightOverride || 0;
+
+      if (!data.weightOverride) {
+        // Frame
+        estimatedWeight += COMPONENT_WEIGHTS.frame[data.frameSize] || 0;
+
+        // Motors (4x)
+        if (motorVolume > 0) {
+          const motorWeight = motorVolume * COMPONENT_WEIGHTS.motorWeightPerVolume;
+          estimatedWeight += motorWeight * 4;
+        }
+
+        // FC/ESC (estimated based on size)
+        if (data.frameSize <= 3) {
+          estimatedWeight += 8; // AIO board
+        } else if (data.frameSize <= 5) {
+          estimatedWeight += 25; // Standard stack
+        } else {
+          estimatedWeight += 40; // Large stack
+        }
+
+        // VTX
+        estimatedWeight += COMPONENT_WEIGHTS.vtx[data.vtxType] || 0;
+
+        // GPS
+        if (data.hasGps) {
+          estimatedWeight += COMPONENT_WEIGHTS.gps;
+        }
+
+        // Battery (estimated)
+        const batteryWeights = { 1: 8, 2: 30, 3: 45, 4: 120, 6: 220, 8: 400 };
+        estimatedWeight += batteryWeights[data.batterySize] || 0;
+
+        // Props, wires, misc (5-15% overhead)
+        estimatedWeight *= 1.1;
+      }
+
+      analysis.weight = Math.round(estimatedWeight);
+
+      // Calculate thrust-to-weight (simplified estimation)
+      if (motorVolume > 0 && data.motorKv && data.batterySize) {
+        const voltage = data.batterySize * 3.7; // Simplified
+        const thrustPerMotor = (motorVolume * 0.04) * Math.pow(data.frameSize / 5, 1.5) * ((data.motorKv * voltage) / 1000);
+        const totalThrust = thrustPerMotor * 4;
+        analysis.thrustToWeight = (totalThrust / analysis.weight).toFixed(1);
+      }
+
+      // Determine class
+      if (data.frameSize <= 2.5) {
+        analysis.class = 'Micro';
+      } else if (data.frameSize <= 3.5) {
+        analysis.class = 'Ultra-Light';
+      } else if (data.frameSize <= 5) {
+        analysis.class = 'Standard';
+      } else if (data.frameSize <= 7) {
+        analysis.class = 'Long Range';
+      } else {
+        analysis.class = 'Heavy Lift';
+      }
+
+      // Calculate viability score (0-100)
+      let viabilityScore = 100;
+      viabilityScore -= analysis.errors.length * 30;
+      viabilityScore -= analysis.warnings.length * 10;
+      analysis.viability = Math.max(0, viabilityScore);
+
+      // Determine flight characteristics
+      analysis.characteristics = determineCharacteristics(data, analysis);
+
+      return analysis;
+    }
+
+    function determineCharacteristics(data, analysis) {
+      const chars = [];
+
+      // Power characteristics
+      if (analysis.thrustToWeight >= 8) {
+        chars.push('🚀 Like a Rocket');
+      } else if (analysis.thrustToWeight >= 5) {
+        chars.push('⚡ Punchy');
+      } else if (analysis.thrustToWeight >= 3) {
+        chars.push('✅ Adequate Power');
+      } else if (analysis.thrustToWeight > 0) {
+        chars.push('🥔 Like a Potato');
+      }
+
+      // Weight characteristics
+      if (analysis.weight < 100) {
+        chars.push('🪶 Featherweight');
+        chars.push('💨 Floaty');
+      } else if (analysis.weight < 300) {
+        chars.push('⚖️ Balanced');
+      } else if (analysis.weight < 700) {
+        chars.push('🔒 Locked In');
+      } else {
+        chars.push('🪨 Heavy');
+        chars.push('🎯 Stable Platform');
+      }
+
+      // Frame size characteristics
+      if (data.frameSize <= 2.5) {
+        chars.push('🏠 Indoor Friendly');
+        chars.push('🌪️ Twitchy');
+      } else if (data.frameSize >= 7) {
+        chars.push('🛫 Cruiser');
+        chars.push('⏱️ Long Flight Times');
+      }
+
+      // KV characteristics
+      if (data.motorKv && data.batterySize) {
+        const rpm = data.motorKv * (data.batterySize * 3.7);
+        if (rpm > 60000) {
+          chars.push('🔊 Screamer');
+        } else if (rpm < 25000) {
+          chars.push('🤫 Quiet');
+        }
+      }
+
+      // VTX characteristics
+      if (data.vtxType === 'dji' || data.vtxType === 'walksnail') {
+        chars.push('📹 Cinematic');
+      }
+
+      // GPS
+      if (data.hasGps) {
+        chars.push('🗺️ GPS Enabled');
+      }
+
+      return chars;
+    }
+
+    function displayResults(analysis) {
+      // Update metrics
+      elements.estimatedWeight.textContent = analysis.weight || '—';
+      elements.thrustWeight.textContent = analysis.thrustToWeight || '—';
+      elements.buildClass.textContent = analysis.class || '—';
+
+      // Viability score with color
+      if (analysis.viability >= 80) {
+        elements.viabilityScore.textContent = '✅ ' + analysis.viability;
+        elements.viabilityScore.style.color = '#86efac';
+      } else if (analysis.viability >= 50) {
+        elements.viabilityScore.textContent = '⚠️ ' + analysis.viability;
+        elements.viabilityScore.style.color = '#fdba74';
+      } else {
+        elements.viabilityScore.textContent = '❌ ' + analysis.viability;
+        elements.viabilityScore.style.color = '#fca5a5';
+      }
+
+      // Display alerts
+      let alertsHTML = '';
+
+      if (!buildData.frameSize) {
+        alertsHTML += '<div class="alert alert-warning"><span class="alert-icon">ℹ️</span><span>Select a frame size to begin analysis</span></div>';
+      } else {
+        analysis.errors.forEach(err => {
+          alertsHTML += `<div class="alert alert-error"><span class="alert-icon">❌</span><span>${err}</span></div>`;
+        });
+
+        analysis.warnings.forEach(warn => {
+          alertsHTML += `<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>${warn}</span></div>`;
+        });
+
+        if (analysis.errors.length === 0 && analysis.warnings.length === 0) {
+          alertsHTML += '<div class="alert alert-success"><span class="alert-icon">✅</span><span>Build looks good! No compatibility issues detected.</span></div>';
+        }
+      }
+
+      elements.alerts.innerHTML = alertsHTML;
+
+      // Display characteristics
+      elements.characteristics.innerHTML = analysis.characteristics
+        .map(char => `<div class="characteristic-tag">${char}</div>`)
+        .join('');
+    }
+
+    function drawQuad(analysis) {
+      const canvas = elements.canvas;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+
+      if (!buildData.frameSize) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Select a frame size to see visualization', width / 2, height / 2);
+        return;
+      }
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Scale based on frame size
+      const scale = Math.min(width, height) / (buildData.frameSize * 2.5);
+      const armLength = (buildData.frameSize / 2) * scale;
+
+      // Draw frame
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      // Draw X-pattern arms
+      const armAngle = Math.PI / 4;
+      const arms = [
+        { angle: armAngle, label: 'FL' },
+        { angle: Math.PI - armAngle, label: 'FR' },
+        { angle: Math.PI + armAngle, label: 'BR' },
+        { angle: 2 * Math.PI - armAngle, label: 'BL' }
+      ];
+
+      arms.forEach(arm => {
+        const x = centerX + Math.cos(arm.angle) * armLength;
+        const y = centerY + Math.sin(arm.angle) * armLength;
+
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Draw motors
+      ctx.fillStyle = '#3b82f6';
+      arms.forEach(arm => {
+        const x = centerX + Math.cos(arm.angle) * armLength;
+        const y = centerY + Math.sin(arm.angle) * armLength;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Motor labels
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(arm.label, x, y - 20);
+        ctx.fillStyle = '#3b82f6';
+      });
+
+      // Draw center body
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+      const bodySize = Math.max(30, armLength * 0.3);
+      ctx.beginPath();
+      ctx.rect(centerX - bodySize / 2, centerY - bodySize / 2, bodySize, bodySize);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw thrust vectors
+      if (analysis.thrustToWeight > 0) {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.fillStyle = '#fbbf24';
+
+        const thrustLength = Math.min(80, analysis.thrustToWeight * 10);
+
+        arms.forEach(arm => {
+          const x = centerX + Math.cos(arm.angle) * armLength;
+          const y = centerY + Math.sin(arm.angle) * armLength;
+
+          // Upward thrust arrow
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y - thrustLength);
+          ctx.stroke();
+
+          // Arrow head
+          ctx.beginPath();
+          ctx.moveTo(x, y - thrustLength);
+          ctx.lineTo(x - 5, y - thrustLength + 10);
+          ctx.lineTo(x + 5, y - thrustLength + 10);
+          ctx.closePath();
+          ctx.fill();
+        });
+      }
+
+      // Draw weight vector (downward)
+      if (analysis.weight > 0) {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.fillStyle = '#ef4444';
+
+        const weightLength = Math.min(60, analysis.weight / 10);
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX, centerY + weightLength);
+        ctx.stroke();
+
+        // Arrow head
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY + weightLength);
+        ctx.lineTo(centerX - 6, centerY + weightLength - 12);
+        ctx.lineTo(centerX + 6, centerY + weightLength - 12);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Draw legend
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'left';
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('↑ Thrust', 20, height - 60);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.fillText('↓ Weight', 20, height - 40);
+
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillText(`Frame: ${buildData.frameSize}"`, 20, height - 20);
+    }
+
+    // Initialize
+    updateBuild();
   </script>
 </body>
 </html>
