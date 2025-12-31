@@ -234,6 +234,29 @@
       box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
     }
 
+    .char-power { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
+    .char-weight { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); }
+    .char-type { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .char-feature { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      margin-top: 3rem;
+      border-top: 1px solid #334155;
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+
+    footer a {
+      color: #06b6d4;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
     .section-divider {
       height: 1px;
       background: linear-gradient(90deg, transparent, #334155, transparent);
@@ -421,6 +444,20 @@
         </div>
       </div>
     </div>
+
+    <footer>
+      <p><strong>FPV Quad Build Validator</strong> v1.0.0</p>
+      <p style="margin-top: 0.5rem;">
+        Component compatibility checker and flight behavior predictor.
+        <br>
+        ⚠️ Estimates are for planning only. Always validate with thrust stand data and community feedback.
+      </p>
+      <p style="margin-top: 1rem; font-size: 0.75rem;">
+        Built with ❤️ for the FPV community •
+        <a href="https://github.com/cori/FPV-configurator" target="_blank">GitHub</a> •
+        No data collection, runs entirely in your browser
+      </p>
+    </footer>
   </div>
 
   <script>
@@ -860,56 +897,110 @@
       const chars = [];
 
       // Power characteristics
-      if (analysis.thrustToWeight >= 8) {
+      if (analysis.thrustToWeight >= 10) {
+        chars.push('🚀 Like a Rocket');
+        chars.push('💥 Violent');
+      } else if (analysis.thrustToWeight >= 8) {
         chars.push('🚀 Like a Rocket');
       } else if (analysis.thrustToWeight >= 5) {
         chars.push('⚡ Punchy');
       } else if (analysis.thrustToWeight >= 3) {
         chars.push('✅ Adequate Power');
-      } else if (analysis.thrustToWeight > 0) {
+      } else if (analysis.thrustToWeight >= 2) {
         chars.push('🥔 Like a Potato');
+      } else if (analysis.thrustToWeight > 0) {
+        chars.push('🐌 Sluggish');
       }
 
       // Weight characteristics
-      if (analysis.weight < 100) {
+      if (analysis.weight < 50) {
+        chars.push('🪶 Featherweight');
+        chars.push('💨 Floaty');
+        chars.push('🌬️ Wind-Sensitive');
+      } else if (analysis.weight < 100) {
         chars.push('🪶 Featherweight');
         chars.push('💨 Floaty');
       } else if (analysis.weight < 300) {
         chars.push('⚖️ Balanced');
+      } else if (analysis.weight < 500) {
+        chars.push('🔒 Locked In');
       } else if (analysis.weight < 700) {
         chars.push('🔒 Locked In');
+        chars.push('🎯 Stable Platform');
       } else {
         chars.push('🪨 Heavy');
         chars.push('🎯 Stable Platform');
+        chars.push('🌊 Momentum-Based');
       }
 
       // Frame size characteristics
-      if (data.frameSize <= 2.5) {
+      if (data.frameSize <= 2) {
+        chars.push('🏠 Indoor Friendly');
+        chars.push('🌪️ Twitchy');
+        chars.push('🎮 Nimble');
+      } else if (data.frameSize <= 2.5) {
         chars.push('🏠 Indoor Friendly');
         chars.push('🌪️ Twitchy');
       } else if (data.frameSize >= 7) {
         chars.push('🛫 Cruiser');
         chars.push('⏱️ Long Flight Times');
+      } else if (data.frameSize >= 6) {
+        chars.push('🗺️ Explorer');
       }
 
-      // KV characteristics
+      // KV + Battery characteristics (RPM-based)
       if (data.motorKv && data.batterySize) {
         const rpm = data.motorKv * (data.batterySize * 3.7);
-        if (rpm > 60000) {
+        if (rpm > 70000) {
           chars.push('🔊 Screamer');
+          chars.push('🔥 Hot Runner');
+        } else if (rpm > 60000) {
+          chars.push('🔊 Screamer');
+        } else if (rpm < 20000) {
+          chars.push('🤫 Quiet');
+          chars.push('❄️ Cool Runner');
         } else if (rpm < 25000) {
           chars.push('🤫 Quiet');
         }
       }
 
+      // Efficiency characteristics (frame + battery)
+      if (data.frameSize >= 6 && data.batterySize >= 6) {
+        chars.push('⛽ Efficient');
+      }
+
+      // Racing characteristics
+      if (data.frameSize === 5 && analysis.weight < 600 && analysis.thrustToWeight >= 6) {
+        chars.push('🏁 Race Ready');
+      }
+
+      // Freestyle characteristics
+      if (data.frameSize === 5 && analysis.weight >= 600 && analysis.thrustToWeight >= 5) {
+        chars.push('🎬 Freestyle');
+      }
+
       // VTX characteristics
       if (data.vtxType === 'dji' || data.vtxType === 'walksnail') {
-        chars.push('📹 Cinematic');
+        chars.push('📹 HD Video');
+      } else if (data.vtxType === 'analog') {
+        chars.push('📺 Analog FPV');
       }
 
       // GPS
       if (data.hasGps) {
         chars.push('🗺️ GPS Enabled');
+        chars.push('🏠 Return-to-Home');
+      }
+
+      // Sub-250g class check
+      if (analysis.weight < 250) {
+        chars.push('🎫 Sub-250g');
+      }
+
+      // Durability hints based on weight/size ratio
+      const weightRatio = analysis.weight / (data.frameSize * 100);
+      if (weightRatio < 0.8 && data.frameSize >= 5) {
+        chars.push('💎 Lightweight Build');
       }
 
       return chars;
@@ -954,9 +1045,21 @@
 
       elements.alerts.innerHTML = alertsHTML;
 
-      // Display characteristics
+      // Display characteristics with categorization
+      function getCharClass(char) {
+        const powerChars = ['🚀', '⚡', '✅', '🥔', '🐌', '💥', '🏁', '🎬'];
+        const weightChars = ['🪶', '💨', '⚖️', '🔒', '🪨', '🎯', '🌊', '🌬️', '💎'];
+        const typeChars = ['🏠', '🌪️', '🛫', '⏱️', '🗺️', '🎮', '🔊', '🤫', '🔥', '❄️', '⛽'];
+
+        const emoji = char.split(' ')[0];
+        if (powerChars.includes(emoji)) return 'char-power';
+        if (weightChars.includes(emoji)) return 'char-weight';
+        if (typeChars.includes(emoji)) return 'char-type';
+        return 'char-feature';
+      }
+
       elements.characteristics.innerHTML = analysis.characteristics
-        .map(char => `<div class="characteristic-tag">${char}</div>`)
+        .map(char => `<div class="characteristic-tag ${getCharClass(char)}">${char}</div>`)
         .join('');
     }
 
